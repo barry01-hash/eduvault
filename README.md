@@ -7,7 +7,7 @@ EduVault is an educational content marketplace that helps educators and student 
 
 ## Status
 
-EduVault is an in-development project. This repository already contains a working Next.js prototype for creator profiles, content uploads, IPFS-backed metadata, and marketplace flows. It also includes an earlier EVM/Celo proof of concept for tokenized ownership. The Drip Wave submission proposes the next milestone: moving payments, licensing, and entitlement checks onto Stellar and Soroban.
+EduVault is an in-development project. This repository already contains a working Next.js prototype for creator profiles, content uploads, IPFS-backed metadata, and marketplace flows. It also preserves an archived EVM/Celo proof of concept for tokenized ownership under `archive/legacy-evm/`. The Drip Wave submission proposes the next milestone: moving payments, licensing, and entitlement checks onto Stellar and Soroban.
 
 ## Overview
 
@@ -106,7 +106,7 @@ Stellar documentation confirms that Soroban is integrated into the existing Stel
 - Storage: MongoDB for profiles and catalog metadata
 - File persistence: IPFS pinning through Pinata
 - Wallet prototype: wagmi, RainbowKit, WalletConnect, and Coinbase Wallet support
-- Smart contract prototype: Solidity ERC-721 proof of concept in [`contracts/EduVault.sol`](contracts/EduVault.sol)
+- Smart contract prototype: archived Solidity ERC-721 proof of concept in [`archive/legacy-evm/contracts/EduVault.sol`](archive/legacy-evm/contracts/EduVault.sol)
 
 ### Proposed Stellar-native architecture
 
@@ -141,7 +141,23 @@ Stellar documentation confirms that Soroban is integrated into the existing Stel
 
 ### Current prototype
 
-This repository currently includes an ERC-721 contract and EVM wallet integration used to validate the upload-to-ownership flow during early prototyping. That contract is not the final blockchain strategy for the Drip Wave submission.
+This repository preserves an archived ERC-721 contract and EVM wallet integration used to validate the upload-to-ownership flow during early prototyping. That contract is not the final blockchain strategy for the Drip Wave submission and should not be extended for new product work.
+
+## Legacy EVM Prototype
+
+The Solidity/Celo prototype is archived under `archive/legacy-evm/`.
+
+- It is retained for historical reference and tests only.
+- It must not be treated as the production chain layer.
+- New product work should target Stellar and Soroban instead.
+
+## Migration Checklist
+
+- Replace wallet-specific EVM assumptions in the UI with Stellar wallet flows.
+- Implement Soroban material registration and entitlement checks.
+- Replace legacy purchase/mint UI with Soroban-backed publishing and checkout.
+- Remove any production environment assumptions that reference Celo or the archived contract.
+- Keep legacy prototype tests isolated under archived contract checks only.
 
 ### Proposed Stellar implementation
 
@@ -158,12 +174,12 @@ Content files stay off-chain. The chain is used for settlement, rights registrat
 
 ## Installation
 
-Examples below use `npm`, but `pnpm` or `bun` can also be used.
+This repository standardizes on `pnpm` and the canonical lockfile `pnpm-lock.yaml`.
 
 ### Prerequisites
 
 - Node.js 20+
-- npm 10+ or pnpm
+- pnpm (Corepack recommended)
 - MongoDB 7+ or Docker
 - Pinata credentials for file uploads
 - A wallet for testing current prototype flows
@@ -173,7 +189,8 @@ Examples below use `npm`, but `pnpm` or `bun` can also be used.
 ```bash
 git clone https://github.com/Obiajulu-gif/eduvault.git
 cd eduvault
-npm install
+corepack enable
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 ```
 
@@ -186,7 +203,7 @@ docker compose up -d mongodb
 Start the app:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Open `http://localhost:3000`.
@@ -196,19 +213,19 @@ Open `http://localhost:3000`.
 Run the Solidity prototype tests:
 
 ```bash
-npm run test:contracts
+pnpm run test:contracts
 ```
 
 Run backend validation, rate-limit, and indexer tests:
 
 ```bash
-npm run test:backend
+pnpm run test:backend
 ```
 
 Run the full local test baseline:
 
 ```bash
-npm test
+pnpm test
 ```
 
 Backend schema and route contracts are documented in [`docs/backend-contracts.md`](docs/backend-contracts.md).
@@ -219,7 +236,7 @@ Backend schema and route contracts are documented in [`docs/backend-contracts.md
 2. Copy `.env.example` to `.env.local`.
 3. Configure MongoDB, Pinata, and email credentials.
 4. Run `docker compose up -d mongodb` if you do not already have MongoDB running.
-5. Start the development server with `npm run dev`.
+5. Start the development server with `pnpm run dev`.
 
 ## Environment Variables
 
@@ -242,6 +259,21 @@ See [`.env.example`](.env.example) for the canonical template.
 | `NEXT_PUBLIC_HORIZON_URL` | Planned | Horizon endpoint for indexing and account lookups |
 | `NEXT_PUBLIC_SOROBAN_CONTRACT_ID` | Planned | Contract ID for entitlement and payment logic |
 | `NEXT_PUBLIC_ACCEPTED_ASSET` | Planned | Default accepted payment asset such as `XLM` or `USDC` |
+
+## Deployment Guardrails
+
+- Production builds and startups validate required environment values before the app serves traffic.
+- Placeholder secrets such as `replace-with-a-long-random-string` fail validation in production.
+- CI runs dependency audits and a secret/placeholder scan before merge.
+- Security headers are set centrally in `next.config.mjs` for all application routes.
+- Dashboard middleware verifies the signed session token before protected routes render.
+
+### Production vs Local Environment
+
+- Local development may leave some Soroban settings unset while the feature is still gated.
+- Production deployments must provide real `JWT_SECRET`, `MONGODB_URI`, `PINATA_JWT`, `NEXT_PUBLIC_APP_URL`, and `NEXT_PUBLIC_GATEWAY_URL` values.
+- Once Soroban features are enabled, production must also provide valid `NEXT_PUBLIC_STELLAR_RPC_URL`, `NEXT_PUBLIC_HORIZON_URL`, and `NEXT_PUBLIC_SOROBAN_CONTRACT_ID`.
+- Preview and production environments should not use placeholder values for any credential-like setting.
 
 ## Usage
 

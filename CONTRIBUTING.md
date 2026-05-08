@@ -22,10 +22,20 @@ EduVault is an in-development educational content marketplace with a current web
 ## Local Setup
 
 ```bash
-npm install
+# Install dependencies (canonical): pnpm with the repo lockfile
+corepack enable
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 docker compose up -d mongodb
-npm run dev
+pnpm run dev
+```
+
+Windows notes: If PowerShell blocks scripts, enable Corepack and run the above install from an elevated PowerShell or use the system-wide installer:
+
+```powershell
+corepack enable
+
+pnpm install --frozen-lockfile
 ```
 
 ## Branching
@@ -39,6 +49,7 @@ npm run dev
 - Prefer explicit naming over clever abstractions.
 - Preserve the distinction between current prototype behavior and planned Stellar milestones.
 - Do not claim a feature is on Stellar unless it is implemented and testable in this repository.
+- Do not add new product work to the archived EVM prototype unless there is an explicit architecture decision to do so.
 - Update documentation when architecture or environment requirements change.
 
 ## Pull Request Checklist
@@ -49,6 +60,29 @@ npm run dev
 - Pull requests that change visible frontend behavior include screenshots or a short screen recording.
 - Request/response examples are included when backend or API changes materially benefit from them.
 - Any product or architectural assumptions are stated explicitly in the PR description.
+
+## CI and Validation
+
+- **Canonical package manager**: `pnpm` (repo lockfile: `pnpm-lock.yaml`).
+- **Deterministic install (local + CI)**:
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+```
+
+- **Required validation commands** (run locally to replicate CI):
+
+```bash
+pnpm run lint          # lint checks
+
+pnpm run test:frontend # Frontend tests (must exist, CI will fail if absent)
+pnpm run test:backend  # Backend tests
+pnpm run test:contracts# Contract tests (Hardhat/Foundry)
+pnpm run build         # build step
+```
+
+- The CI workflows are configured to run these commands with `pnpm` and use the locked dependency graph. Pull requests that remove or replace these scripts will fail CI. If a test runner is intentionally not used yet, update `CONTRIBUTING.md` and open an issue explaining why.
 
 ## Commit Messages
 
@@ -72,3 +106,4 @@ When opening an issue, include:
 ## Security
 
 Do not disclose secrets, private keys, or production credentials in issues or pull requests. If you discover a sensitive security issue, contact the maintainer privately before public disclosure.
+🌟 Stellar Contributors: See the [Stellar Integration Guide](docs/STELLAR_GUIDE.md) for setup instructions.
